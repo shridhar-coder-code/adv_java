@@ -48,7 +48,7 @@ A student management project with:
 Use your repository URL:
 
 ```bash
-git clone <YOUR_REPO_URL>
+git clone https://github.com/shridhar-coder-code/adv_java.git
 cd adv_java
 ```
 
