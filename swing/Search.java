@@ -11,24 +11,24 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JTable;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
+import javax.swing.JTable;
 import javax.swing.SwingConstants;
-import javax.swing.plaf.basic.BasicComboBoxUI;
-import javax.swing.BorderFactory;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicComboBoxUI;
+import javax.swing.table.DefaultTableModel;
 
-public class Delete {
+public class Search {
     public static void main(String[] args) {
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -42,11 +42,10 @@ public class Delete {
         headerPanel.setBorder(new EmptyBorder(30, 20, 20, 20));
         headerPanel.setBackground(new Color(255, 255, 0));
 
-        JLabel titleLabel = new JLabel("Delete Student Record", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("Search Student Record", SwingConstants.CENTER);
         titleLabel.setFont(new Font("SansSerif", Font.BOLD, 26));
         titleLabel.setForeground(Color.RED);
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         headerPanel.add(titleLabel);
 
         JPanel panel = new JPanel();
@@ -78,18 +77,6 @@ public class Delete {
         usnEditor.setBackground(Color.WHITE);
         usnEditor.setForeground(Color.BLACK);
         usnEditor.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
-        usnCombo.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                showRecentUsnPopup(usnCombo);
-            }
-        });
-        usnEditor.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                showRecentUsnPopup(usnCombo);
-            }
-        });
         refreshUsnDropdown(usnCombo);
 
         JLabel statusLabel = new JLabel(" ");
@@ -107,6 +94,7 @@ public class Delete {
                 return false;
             }
         };
+
         JTable detailsTable = new JTable(detailsModel);
         detailsTable.setRowHeight(28);
         detailsTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -121,6 +109,7 @@ public class Delete {
         detailsTable.getTableHeader().setForeground(Color.BLACK);
         detailsTable.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 13));
         detailsTable.getTableHeader().setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
+
         JScrollPane detailsScroll = new JScrollPane(detailsTable);
         detailsScroll.setPreferredSize(new Dimension(1200, 240));
         detailsScroll.setMaximumSize(new Dimension(1200, 320));
@@ -137,12 +126,6 @@ public class Delete {
         searchButton.setMaximumSize(buttonSize);
         searchButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         searchButton.setFocusPainted(false);
-
-        JButton deleteButton = new JButton("Delete");
-        deleteButton.setPreferredSize(buttonSize);
-        deleteButton.setMaximumSize(buttonSize);
-        deleteButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        deleteButton.setFocusPainted(false);
 
         JButton backBtn = new JButton("Back to Dashboard");
         backBtn.setPreferredSize(new Dimension(220, 50));
@@ -172,25 +155,6 @@ public class Delete {
             }
         });
 
-        deleteButton.setBorder(BorderFactory.createLineBorder(new Color(180, 80, 80), 2, false));
-        deleteButton.setBorderPainted(true);
-        deleteButton.setBackground(normalButtonColor);
-        deleteButton.setForeground(Color.BLACK);
-        deleteButton.setOpaque(true);
-        deleteButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                deleteButton.setBackground(hoverButtonColor);
-                deleteButton.setForeground(Color.WHITE);
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                deleteButton.setBackground(normalButtonColor);
-                deleteButton.setForeground(Color.BLACK);
-            }
-        });
-
         backBtn.setBorder(BorderFactory.createLineBorder(new Color(180, 80, 80), 2, false));
         backBtn.setBorderPainted(true);
         backBtn.setBackground(normalButtonColor);
@@ -216,6 +180,14 @@ public class Delete {
                 JOptionPane.showMessageDialog(frame, "Please enter USN.");
                 return;
             }
+
+            // Validate USN format
+            if (!Validation.isValidUSN(usn)) {
+                JOptionPane.showMessageDialog(frame,
+                        "Invalid USN Format.\nFormat: 1 digit + 2 letters + 2 digits + 2 letters + 3 digits");
+                return;
+            }
+
             UsnHistory.add(usn);
             refreshUsnDropdown(usnCombo);
 
@@ -260,47 +232,6 @@ public class Delete {
             }
         });
 
-        deleteButton.addActionListener(e -> {
-            if (detailsModel.getRowCount() == 0) {
-                JOptionPane.showMessageDialog(frame, "Search and load a student record first.");
-                return;
-            }
-
-            String usn = getTypedUsn(usnCombo);
-            if (usn.isEmpty()) {
-                JOptionPane.showMessageDialog(frame, "Please enter USN.");
-                return;
-            }
-            UsnHistory.add(usn);
-            refreshUsnDropdown(usnCombo);
-
-            int confirm = JOptionPane.showConfirmDialog(frame,
-                    "Delete student with USN " + usn + "?",
-                    "Confirm Delete",
-                    JOptionPane.YES_NO_OPTION);
-            if (confirm != JOptionPane.YES_OPTION) {
-                return;
-            }
-
-            String sql = "DELETE FROM sdata WHERE `USN` = ?";
-            try (Connection conn = new dbConnect().getConnection();
-                    PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, usn);
-                int rows = ps.executeUpdate();
-                if (rows > 0) {
-                    JOptionPane.showMessageDialog(frame, "Student deleted successfully.");
-                    detailsModel.setRowCount(0);
-                    statusLabel.setText("Record deleted.");
-                    statusLabel.setForeground(new Color(0, 120, 0));
-                } else {
-                    statusLabel.setText("Student not present.");
-                    statusLabel.setForeground(new Color(170, 0, 0));
-                }
-            } catch (SQLException | ClassNotFoundException ex) {
-                JOptionPane.showMessageDialog(frame, "Database Error: " + ex.getMessage());
-            }
-        });
-
         backBtn.addActionListener(e -> {
             frame.dispose();
             Dashboard.main(new String[0]);
@@ -320,7 +251,6 @@ public class Delete {
         actionButtonsPanel.setBackground(new Color(255, 255, 0));
         actionButtonsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         actionButtonsPanel.add(searchButton);
-        actionButtonsPanel.add(deleteButton);
         panel.add(actionButtonsPanel);
         panel.add(Box.createVerticalStrut(18));
         JPanel tablePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
@@ -343,7 +273,6 @@ public class Delete {
         mainScrollPane.getVerticalScrollBar().setUnitIncrement(14);
         mainScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         frame.add(mainScrollPane, BorderLayout.CENTER);
-
         frame.setVisible(true);
     }
 
@@ -359,13 +288,5 @@ public class Delete {
             usnCombo.addItem(usn);
         }
         usnCombo.getEditor().setItem(current);
-    }
-
-    private static void showRecentUsnPopup(JComboBox<String> usnCombo) {
-        refreshUsnDropdown(usnCombo);
-        if (usnCombo.getItemCount() == 0 || !usnCombo.isShowing()) {
-            return;
-        }
-        usnCombo.showPopup();
     }
 }

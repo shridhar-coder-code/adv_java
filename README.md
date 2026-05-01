@@ -38,28 +38,10 @@ A student management project with:
 
 ## Project Structure
 
-Top-level important files:
-
-- MyFrame.java (login UI)
-- Dashboard.java (main menu)
-- Add.java, Update.java, Delete.java, Search.java (desktop CRUD screens)
-- dbConnect.java (JDBC connection + login check)
-- UsnHistory.java (temporary in-memory USN history)
-- RoundedBorder.java (custom UI border)
-
-Web layer files:
-
-- AddStudentServlet.java
-- UpdateStudentServlet.java
-- DeleteStudentServlet.java
-- SearchStudentServlet.java
-- StudentWebDao.java
-- web/index.jsp
-- web/add-student.jsp
-- web/update-student.jsp
-- web/delete-student.jsp
-- web/search-student.jsp
-- web/WEB-INF/web.xml
+- `swing/` - desktop Swing UI screens and helpers
+- `servlet/` - servlet classes and servlet-side DAO/UI helpers
+- `shared/` - shared validation and database connection code
+- `web/` - JSP pages and `WEB-INF` configuration
 
 ## 1. Clone the Project
 
@@ -91,13 +73,13 @@ cd adv_java
 Compile:
 
 ```powershell
-javac -cp ".;mysql-connector-j-9.6.0\mysql-connector-j-9.6.0\mysql-connector-j-9.6.0.jar" MyFrame.java dbConnect.java Dashboard.java Add.java Delete.java Update.java Search.java UsnHistory.java RoundedBorder.java StudentWebDao.java
+javac -cp ".;mysql-connector-j-9.6.0\mysql-connector-j-9.6.0\mysql-connector-j-9.6.0.jar" shared\dbConnect.java shared\Validation.java swing\MyFrame.java swing\Dashboard.java swing\Add.java swing\Delete.java swing\Update.java swing\Search.java swing\UsnHistory.java swing\RoundedBorder.java
 ```
 
 Run:
 
 ```powershell
-java -cp ".;mysql-connector-j-9.6.0\mysql-connector-j-9.6.0\mysql-connector-j-9.6.0.jar" MyFrame
+java -cp ".;swing;shared;mysql-connector-j-9.6.0\mysql-connector-j-9.6.0\mysql-connector-j-9.6.0.jar" MyFrame
 ```
 
 ## 5. Deploy and Run Web App (Tomcat 9)
@@ -114,7 +96,7 @@ New-Item -ItemType Directory -Force "C:\Program Files\Apache Software Foundation
 ### Step B: Compile servlets and DAO into WEB-INF/classes
 
 ```powershell
-javac -d "C:\Program Files\Apache Software Foundation\Tomcat 9.0_Tomcat90\webapps\adv_java\WEB-INF\classes" -cp ".;C:\Program Files\Apache Software Foundation\Tomcat 9.0_Tomcat90\lib\servlet-api.jar;C:\Program Files\Apache Software Foundation\Tomcat 9.0_Tomcat90\lib\mysql-connector-j-9.6.0.jar" AddStudentServlet.java UpdateStudentServlet.java DeleteStudentServlet.java SearchStudentServlet.java StudentWebDao.java dbConnect.java
+javac -d "C:\Program Files\Apache Software Foundation\Tomcat 9.0_Tomcat90\webapps\adv_java\WEB-INF\classes" -cp ".;C:\Program Files\Apache Software Foundation\Tomcat 9.0_Tomcat90\lib\servlet-api.jar;C:\Program Files\Apache Software Foundation\Tomcat 9.0_Tomcat90\lib\mysql-connector-j-9.6.0.jar" servlet\AddStudentServlet.java servlet\UpdateStudentServlet.java servlet\DeleteStudentServlet.java servlet\SearchStudentServlet.java servlet\StudentWebDao.java servlet\ServletUi.java shared\dbConnect.java shared\Validation.java
 ```
 
 ### Step C: Copy JSP + WEB-INF config

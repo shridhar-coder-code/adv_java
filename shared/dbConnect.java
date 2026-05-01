@@ -28,7 +28,12 @@ public class dbConnect {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     frame.dispose();
-                    Dashboard.main(new String[0]);
+                    try {
+                        Class<?> dashboardClass = Class.forName("Dashboard");
+                        dashboardClass.getMethod("main", String[].class).invoke(null, (Object) new String[0]);
+                    } catch (ReflectiveOperationException ex) {
+                        JOptionPane.showMessageDialog(frame, "Unable to open dashboard: " + ex.getMessage());
+                    }
                 } else {
                     JOptionPane.showMessageDialog(frame, "Invalid username or password.");
                 }

@@ -172,6 +172,22 @@ public class Update {
         JButton updateButton = new JButton("Update");
         updateButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         styleButton(updateButton);
+        JButton rulesButton = new JButton("Validation Rules");
+        rulesButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        rulesButton.setPreferredSize(new Dimension(220, 50));
+        rulesButton.setMaximumSize(new Dimension(220, 50));
+        styleButton(rulesButton);
+        rulesButton.addActionListener(ev -> {
+            String rules = Validation.getAllConstraints();
+            JTextArea ta = new JTextArea(rules);
+            ta.setEditable(false);
+            ta.setLineWrap(true);
+            ta.setWrapStyleWord(true);
+            ta.setBorder(new EmptyBorder(10, 10, 10, 10));
+            JScrollPane sp = new JScrollPane(ta);
+            sp.setPreferredSize(new Dimension(620, 320));
+            JOptionPane.showMessageDialog(frame, sp, "Validation Rules", JOptionPane.INFORMATION_MESSAGE);
+        });
         JButton backButton = new JButton("Back to Dashboard");
         backButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         backButton.setPreferredSize(new Dimension(220, 50));
@@ -179,6 +195,8 @@ public class Update {
         styleButton(backButton);
 
         actionsPanel.add(Box.createVerticalStrut(20));
+        actionsPanel.add(rulesButton);
+        actionsPanel.add(Box.createVerticalStrut(12));
         actionsPanel.add(updateButton);
         actionsPanel.add(Box.createVerticalStrut(12));
         actionsPanel.add(backButton);
@@ -242,6 +260,46 @@ public class Update {
             String usn = usnDisplayField.getText().trim();
             if (usn.isEmpty()) {
                 JOptionPane.showMessageDialog(frame, "Search a student first.");
+                return;
+            }
+
+            // Validate editable fields
+            String sem = semField.getText().trim();
+            String email = emailField.getText().trim();
+            String mobile = mobileField.getText().trim();
+            String year = yearField.getText().trim();
+            String subjects = subjectsArea.getText().trim();
+            String attendance = attendanceField.getText().trim();
+            StringBuilder errors = new StringBuilder();
+            String m;
+            m = (!sem.isEmpty()) ? Validation.getFieldErrorMessage("sem", sem) : "";
+            if (!m.isEmpty())
+                errors.append(m).append("\n");
+            m = (!email.isEmpty()) ? Validation.getFieldErrorMessage("email", email) : "";
+            if (!m.isEmpty())
+                errors.append(m).append("\n");
+            m = (!mobile.isEmpty()) ? Validation.getFieldErrorMessage("mobile", mobile) : "";
+            if (!m.isEmpty())
+                errors.append(m).append("\n");
+            m = (!year.isEmpty()) ? Validation.getFieldErrorMessage("year", year) : "";
+            if (!m.isEmpty())
+                errors.append(m).append("\n");
+            m = (!subjects.isEmpty()) ? Validation.getFieldErrorMessage("subjects", subjects) : "";
+            if (!m.isEmpty())
+                errors.append(m).append("\n");
+            m = (!attendance.isEmpty()) ? Validation.getFieldErrorMessage("attendance", attendance) : "";
+            if (!m.isEmpty())
+                errors.append(m).append("\n");
+
+            if (errors.length() > 0) {
+                JTextArea ta = new JTextArea(errors.toString());
+                ta.setEditable(false);
+                ta.setLineWrap(true);
+                ta.setWrapStyleWord(true);
+                ta.setBorder(new EmptyBorder(10, 10, 10, 10));
+                JScrollPane sp = new JScrollPane(ta);
+                sp.setPreferredSize(new Dimension(520, 220));
+                JOptionPane.showMessageDialog(frame, sp, "Validation Errors", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 

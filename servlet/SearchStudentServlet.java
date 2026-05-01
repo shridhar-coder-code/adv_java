@@ -1,12 +1,10 @@
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@WebServlet("/search-student")
 public class SearchStudentServlet extends HttpServlet {
     private final StudentWebDao dao = new StudentWebDao();
 
@@ -16,22 +14,34 @@ public class SearchStudentServlet extends HttpServlet {
         resp.setContentType("text/html;charset=UTF-8");
         PrintWriter out = resp.getWriter();
 
-        out.println("<html><body style='font-family:Arial'>");
-        out.println("<h2>Search Result</h2>");
+        ServletUi.begin(out, "Search Student");
+        ServletUi.heading(out, "Search Result");
 
         if (usn.isEmpty()) {
-            out.println("<p>Please enter USN.</p>");
-            out.println("<a href='search-student.jsp'>Back</a>");
-            out.println("</body></html>");
+            ServletUi.message(out, "Please enter USN.");
+            ServletUi.actions(out,
+                    ServletUi.button("search-student.jsp", "Back to Form"),
+                    ServletUi.button("index.jsp", "Home"));
+            ServletUi.end(out);
+            return;
+        }
+
+        if (!Validation.isValidUSN(usn)) {
+            ServletUi.message(out,
+                    "Invalid USN format. Expected: 1 digit + 2 letters + 2 digits + 2 letters + 3 digits");
+            ServletUi.actions(out,
+                    ServletUi.button("search-student.jsp", "Back to Form"),
+                    ServletUi.button("index.jsp", "Home"));
+            ServletUi.end(out);
             return;
         }
 
         try {
             StudentWebDao.StudentRecord s = dao.searchByUsn(usn);
             if (s == null) {
-                out.println("<p>No record found for USN: " + escape(usn) + "</p>");
+                ServletUi.message(out, "No record found for USN: " + usn);
             } else {
-                out.println("<table border='1' cellpadding='6' cellspacing='0'>");
+                out.println("<table>");
                 row(out, "USN", s.usn);
                 row(out, "Name", s.name);
                 row(out, "SEM", s.sem);
@@ -50,29 +60,20 @@ public class SearchStudentServlet extends HttpServlet {
                 out.println("</table>");
             }
         } catch (Exception ex) {
-            out.println("<p>Error: " + escape(ex.getMessage()) + "</p>");
+            ServletUi.message(out, "Error: " + ex.getMessage());
         }
 
-        out.println("<p><a href='search-student.jsp'>Back</a></p>");
-        out.println("</body></html>");
+        ServletUi.actions(out,
+                ServletUi.button("search-student.jsp", "Back to Form"),
+                ServletUi.button("index.jsp", "Home"));
+        ServletUi.end(out);
     }
 
     private static void row(PrintWriter out, String key, String value) {
-        out.println("<tr><td><b>" + escape(key) + "</b></td><td>" + escape(value) + "</td></tr>");
+        ServletUi.row(out, key, value);
     }
 
     private static String safe(String value) {
         return value == null ? "" : value.trim();
-    }
-
-    private static String escape(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&#39;");
     }
 }

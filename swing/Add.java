@@ -290,13 +290,21 @@ public class Add {
             String subjects = subjectsArea.getText().trim();
             String attendance = attendanceField.getText().trim();
 
-            if (name.isEmpty() || usn.isEmpty() || sem.isEmpty() || email.isEmpty() || city.isEmpty()
-                    || pinCode.isEmpty()
-                    || dob.isEmpty() || mobile.isEmpty() || branch.isEmpty() || year.isEmpty()
-                    || degreeProgram.isEmpty()
-                    || departmentId.isEmpty() || subjects.isEmpty() || attendance.isEmpty()
-                    || "Select".equals(gender)) {
-                javax.swing.JOptionPane.showMessageDialog(frame, "Please fill all fields before adding.");
+            // Validate all fields using Validation class
+            String validationError = Validation.validateAllFields(
+                    name, usn, sem, email, city, pinCode, dob, gender, mobile,
+                    branch, year, degreeProgram, departmentId, subjects, attendance);
+
+            if (!validationError.isEmpty()) {
+                javax.swing.JTextArea ta = new javax.swing.JTextArea(validationError);
+                ta.setEditable(false);
+                ta.setLineWrap(true);
+                ta.setWrapStyleWord(true);
+                ta.setBorder(new EmptyBorder(10, 10, 10, 10));
+                javax.swing.JScrollPane sp = new javax.swing.JScrollPane(ta);
+                sp.setPreferredSize(new Dimension(620, 320));
+                javax.swing.JOptionPane.showMessageDialog(frame, sp, "Validation Error",
+                        javax.swing.JOptionPane.ERROR_MESSAGE);
                 return;
             }
 

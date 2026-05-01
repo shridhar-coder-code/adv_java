@@ -1,16 +1,19 @@
 import java.io.IOException;
+import java.io.PrintWriter;
+
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@WebServlet("/add-student")
 public class AddStudentServlet extends HttpServlet {
     private final StudentWebDao dao = new StudentWebDao();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html;charset=UTF-8");
+        PrintWriter out = resp.getWriter();
+
         String usn = safe(req.getParameter("usn"));
         String name = safe(req.getParameter("name"));
         String sem = safe(req.getParameter("sem"));
@@ -28,21 +31,29 @@ public class AddStudentServlet extends HttpServlet {
         String attendance = safe(req.getParameter("attendance"));
 
         if (usn.isEmpty() || name.isEmpty() || sem.isEmpty() || email.isEmpty()) {
-            resp.sendRedirect("add-student.jsp?status=Please+fill+required+fields");
+            renderError(out, "Add Student", "Please fill required fields",
+                    "add-student.jsp");
             return;
         }
 
-        if (!email.contains("@") || mobile.length() < 10 || !mobile.matches("\\d+")) {
-            resp.sendRedirect("add-student.jsp?status=Invalid+email+or+mobile+number");
+        // Comprehensive validation using Validation class
+        String validationError = Validation.validateAllFields(
+                name, usn, sem, email, city, pinCode, dob, gender, mobile,
+                branch, year, degreeProgram, departmentId, subjects, attendance);
+
+        if (!validationError.isEmpty()) {
+            renderError(out, "Add Student", validationError, "add-student.jsp");
             return;
         }
 
         try {
             boolean ok = dao.addStudent(usn, name, sem, email, city, pinCode, dob, gender, mobile,
                     branch, year, degreeProgram, departmentId, subjects, attendance);
-            resp.sendRedirect("add-student.jsp?status=" + (ok ? "Student+added+successfully" : "Add+failed"));
+            renderSuccess(out, "Add Student",
+                    ok ? "Student added successfully" : "Add failed",
+                    "add-student.jsp");
         } catch (Exception ex) {
-            resp.sendRedirect("add-student.jsp?status=Error:+" + url(ex.getMessage()));
+            renderError(out, "Add Student", "Database Error: " + ex.getMessage(), "add-student.jsp");
         }
     }
 
@@ -50,7 +61,23 @@ public class AddStudentServlet extends HttpServlet {
         return value == null ? "" : value.trim();
     }
 
-    private static String url(String value) {
-        return value == null ? "" : value.replace(" ", "+");
+    private static void renderSuccess(PrintWriter out, String title, String message, String backHref) {
+        ServletUi.begin(out, title);
+        ServletUi.heading(out, title);
+        ServletUi.message(out, message);
+        ServletUi.actions(out,
+                ServletUi.button(backHref, "Back to Form"),
+                ServletUi.button("index.jsp", "Home"));
+        ServletUi.end(out);
+    }
+
+    private static void renderError(PrintWriter out, String title, String message, String backHref) {
+        ServletUi.begin(out, title);
+        ServletUi.heading(out, title);
+        ServletUi.message(out, "Validation Error:\n" + message);
+        ServletUi.actions(out,
+                ServletUi.button(backHref, "Back to Form"),
+                ServletUi.button("index.jsp", "Home"));
+        ServletUi.end(out);
     }
 }
